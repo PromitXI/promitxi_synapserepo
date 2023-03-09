@@ -5,14 +5,14 @@ pool:
   vmImage: ubuntu-latest
 
 
-steps:
-- bash: |
-    pwd
-    cd syn-dev-eus01
-    ls -l
-  displayName: Multiline Bash Script
-  env:
-    name: Microsoft
+# steps:
+# - bash: |
+#     pwd
+#     cd syn-dev-eus01
+#     ls -l
+#   displayName: Multiline Bash Script
+#   env:
+#     name: Microsoft
 variables:
   env: 'qa'
 
