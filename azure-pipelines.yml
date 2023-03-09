@@ -13,14 +13,12 @@ variables:
   env: 'qa'
 
 steps:
-- task: DownloadPipelineArtifact@2
+- task: DownloadGitHubRelease@0
+  displayName: 'Download GitHub Release'
   inputs:
-    buildType: 'current'
-    project: 'QA_Deployment'
-    definition: 'PromitXI.promitxi_synapserepo'
-    buildVersionToDownload: 'latest'
-    artifactName: 'TemplateForWorkspace.json'
-    targetPath: '$(System.ArtifactsDirectory)/_PromitXI_promitxi_synapserepo'
+    connection: 'github connection 2'
+    userRepository: 'PromitXI/promitxi_synapserepo'
+    itemPattern: '*.json'
 
 
 
