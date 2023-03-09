@@ -20,7 +20,7 @@ steps:
     archiveFile: '$(downloadPublishFolder.secureFilePath)'
     destinationFolder: '$(System.ArtifactsDirectory)/publish_folder'
 
-- task: SynapseWorkspaceDeployment@2
+- task: Synapse workspace deployment@2
   displayName: 'Deploy ARM Templates to Synapse Workspace'
   inputs:
     operation: 'validateAndDeploy'
