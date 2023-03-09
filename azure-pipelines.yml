@@ -18,7 +18,7 @@ steps:
 
   inputs:
     operation: 'validateDeploy'
-    ArtifactsFolder: '/home/vsts/work/1/s/promitxi_synapserepo/syn-dev-eus01/'
+    ArtifactsFolder: '/home/vsts/work/1/s/syn-dev-eus01/'
     azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
     ResourceGroupName: 'RG-Test-QA-Data-RG'
     TargetWorkspaceName: 'syn-$(env)-data-eus'
