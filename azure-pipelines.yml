@@ -4,19 +4,17 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-
-# steps:
-# - bash: |
-#     pwd
-#     cd syn-dev-eus01
-#     ls -l
-#   displayName: Multiline Bash Script
-#   env:
-#     name: Microsoft
 variables:
   env: 'qa'
 
 steps:
+- bash: |
+    pwd
+    cd syn-dev-eus01
+    ls -l
+  displayName: Multiline Bash Script
+  env:
+    name: Microsoft
 - task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
   displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
   inputs:
