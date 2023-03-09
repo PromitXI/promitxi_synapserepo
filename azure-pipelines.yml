@@ -1,6 +1,3 @@
-trigger:
-- workspace_publish
-
 pool:
   vmImage: ubuntu-latest
 
@@ -10,21 +7,7 @@ steps:
     pwd
     cd syn-dev-eus01
     ls -l
+    cat TemplateParametersForWorkspace.json
   displayName: Multiline Bash Script
-  env:
-    name: Microsoft
-- task: Synapse workspace deployment@2
-  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
 
-  inputs:
-    operation: 'validateDeploy'
-    ArtifactsFolder: 'syn-dev-eus01'
-    azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
-    ResourceGroupName: 'RG-Test-QA-Data-RG'
-    TargetWorkspaceName: 'syn-$(env)-data-eus'
-    DeleteArtifactsNotInTemplate: false
-    DeployManagedPrivateEndpoints: false
-    OverrideArmParameters: '-workspaceName $(env)'
-    FailOnMissingOverrides: true
-    Environment: 'prod'
-    npmpackage: 'prod'
+
