@@ -13,18 +13,17 @@ steps:
   displayName: Multiline Bash Script
   env:
     name: Microsoft
-- task: Synapse workspace deployment@2
-  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
+variables:
+  env: 'qa'
 
+steps:
+- task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
   inputs:
-    operation: 'validateDeploy'
-    ArtifactsFolder: 'syn-dev-eus01'
+    TemplateFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateForWorkspace.json'
+    ParametersFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateParametersForWorkspace.json'
     azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
     ResourceGroupName: 'RG-Test-QA-Data-RG'
-    TargetWorkspaceName: 'syn-$(env)-data-eus'
-    DeleteArtifactsNotInTemplate: false
-    DeployManagedPrivateEndpoints: false
+    TargetWorkspaceName: 'syn-$(env)-data-eus '
     OverrideArmParameters: '-workspaceName $(env)'
-    FailOnMissingOverrides: true
-    Environment: 'prod'
-    npmpackage: 'prod'
+    npmpackage: ppe
