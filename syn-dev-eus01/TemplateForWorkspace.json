@@ -2228,7 +2228,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
+			"name": "[concat(parameters('workspaceName'), '/Sample Python')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -2244,7 +2244,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "0792073b-14cf-4405-bb1f-689cc4cf7593"
+						"spark.autotune.trackingId": "fe6e77fd-7177-4d09-b7a3-425bc07cd682"
 					}
 				},
 				"metadata": {
@@ -2264,7 +2264,7 @@
 						"cell_type": "code",
 						"metadata": {},
 						"source": [
-							"print(\"This is a Sample Notebook\")"
+							"print(\"This is a Sample Notebook this needs to be moved to QA\")"
 						],
 						"outputs": [],
 						"execution_count": null
