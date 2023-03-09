@@ -1,0 +1,105 @@
+{
+	"name": "StartingPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "F0_ChannelType_Territory_Channel",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "L0_IndividualCustomer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "F0_ChannelType_Territory_Channel",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "F1_Country_Country1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "F0_ChannelType_Territory_Channel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "F1_Country_Country2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "F4_Location_Location1_Customer_Transacti",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "F1_Country_Country1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "F4_Location_Location1_Customer_Transaction",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "F3_Item_ProductCategoryDim_Product_Trans",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "F4_Location_Location1_Customer_Transacti",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "F3_Item_ProductCategoryDim_Product_TransactionLineItem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "L0_IndividualCustomer",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L0_IndividualCustomer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "AdventureWorksPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-23T14:43:43Z"
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"name": "Territory_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "SalesTerritoryDeltaSource"
+				}
+			],
+			"sinks": [
+				{
+					"name": "TerritorySink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1SalesTerritoryDeltaSource"
+				},
+				{
+					"name": "SalesTerritory"
+				},
+				{
+					"name": "SelectSalesTerritory"
+				},
+				{
+					"name": "Territory"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tSalesTerritoryKey as integer,\n\t\tRegion as string,\n\t\tCountry as string,\n\t\tGroup as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'SalesTerritory',\n\tmanifestType: 'manifest') ~> SalesTerritoryDeltaSource\nSalesTerritoryDeltaSource aggregate(groupBy(SalesTerritoryKey),\n\tGroup = last(Group),\n\t\tCountry = last(Country),\n\t\tRegion = last(Region)) ~> Deduplicated1SalesTerritoryDeltaSource\nDeduplicated1SalesTerritoryDeltaSource select(mapColumn(\n\t\tGroup,\n\t\tCountry,\n\t\tRegion,\n\t\tSalesTerritoryKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SalesTerritory\nSalesTerritory select(mapColumn(\n\t\tGroup,\n\t\tCountry,\n\t\tRegion,\n\t\tSalesTerritoryKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectSalesTerritory\nSelectSalesTerritory select(mapColumn(\n\t\tGroup,\n\t\tCountry,\n\t\tRegion,\n\t\tTerritoryId = SalesTerritoryKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Territory\nTerritory sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Territory',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> TerritorySink"
+		}
+	}
+}

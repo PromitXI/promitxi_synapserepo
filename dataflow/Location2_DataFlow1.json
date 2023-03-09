@@ -1,0 +1,117 @@
+{
+	"name": "Location2_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "ResellerDeltaSource"
+				},
+				{
+					"name": "TargetCountry"
+				},
+				{
+					"name": "TargetLocation"
+				}
+			],
+			"sinks": [
+				{
+					"name": "LocationSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1ResellerDeltaSource"
+				},
+				{
+					"name": "Reseller"
+				},
+				{
+					"name": "SelectReseller"
+				},
+				{
+					"name": "Deduplicated1TargetCountry"
+				},
+				{
+					"name": "SelectCountry"
+				},
+				{
+					"name": "JoinForCountryId"
+				},
+				{
+					"name": "SelectForCountryId"
+				},
+				{
+					"name": "PreSKSelectLocation"
+				},
+				{
+					"name": "Deduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "SelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "Deduplicated1TargetLocation"
+				},
+				{
+					"name": "SelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "SelectTarSelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "JoinSelectTarSelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "FilterInsertLocation"
+				},
+				{
+					"name": "InsertLocation"
+				},
+				{
+					"name": "SkLocation"
+				},
+				{
+					"name": "AggregatedSelectTarSelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "MaxSelectTarSelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "JoinMaxSelectTarSelectDeduplicated1TargetLocation"
+				},
+				{
+					"name": "DerivedLocation"
+				},
+				{
+					"name": "PostSkLocation"
+				},
+				{
+					"name": "FilterUpdateSelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "UpdateSelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "UnionUpdateSelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "SelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation"
+				},
+				{
+					"name": "FinalLocation"
+				},
+				{
+					"name": "Location"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tPostalCode as string,\n\t\tCountryRegion as string,\n\t\tStateProvince as string,\n\t\tCity as string,\n\t\tReseller as string,\n\t\tBusinessType as string,\n\t\tResellerId as string,\n\t\tResellerKey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'Reseller',\n\tmanifestType: 'manifest') ~> ResellerDeltaSource\nsource(output(\n\t\tCountryId as integer,\n\t\tIsoCountryName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Country',\n\tmanifestType: 'manifest') ~> TargetCountry\nsource(output(\n\t\tLocationId as integer,\n\t\tLocationCity as string,\n\t\tLocationState as string,\n\t\tCountryId as integer,\n\t\tLocationZip as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Location',\n\tmanifestType: 'manifest') ~> TargetLocation\nResellerDeltaSource aggregate(groupBy(ResellerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tReseller = last(Reseller),\n\t\tBusinessType = last(BusinessType),\n\t\tResellerId = last(ResellerId)) ~> Deduplicated1ResellerDeltaSource\nDeduplicated1ResellerDeltaSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tReseller,\n\t\tBusinessType,\n\t\tResellerId,\n\t\tResellerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Reseller\nReseller select(mapColumn(\n\t\tCountryRegionAlias = CountryRegion,\n\t\tPostalCode,\n\t\tStateProvince,\n\t\tCity\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectReseller\nTargetCountry aggregate(groupBy(CountryId),\n\tIsoCountryName = last(IsoCountryName)) ~> Deduplicated1TargetCountry\nDeduplicated1TargetCountry select(mapColumn(\n\t\tCountryId,\n\t\tIsoCountryNameAlias = IsoCountryName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectCountry\nSelectReseller, SelectCountry join(CountryRegionAlias === IsoCountryNameAlias,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinForCountryId\nJoinForCountryId select(mapColumn(\n\t\tCountryRegionAlias,\n\t\tPostalCode,\n\t\tStateProvince,\n\t\tCity,\n\t\tCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectForCountryId\nSelectForCountryId select(mapColumn(\n\t\tLocationZip = PostalCode,\n\t\tLocationState = StateProvince,\n\t\tLocationCity = City,\n\t\tCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PreSKSelectLocation\nPreSKSelectLocation aggregate(groupBy(LocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip),\n\tCount = count(1)) ~> Deduplicated1PreSKSelectLocation\nDeduplicated1PreSKSelectLocation select(mapColumn(\n\t\tLocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1PreSKSelectLocation\nTargetLocation aggregate(groupBy(LocationId),\n\tLocationZip = last(LocationZip),\n\t\tLocationState = last(LocationState),\n\t\tLocationCity = last(LocationCity),\n\t\tCountryId = last(CountryId)) ~> Deduplicated1TargetLocation\nDeduplicated1TargetLocation select(mapColumn(\n\t\tLocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip,\n\t\tLocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1TargetLocation\nSelectDeduplicated1TargetLocation select(mapColumn(\n\t\tTarLocationCity = LocationCity,\n\t\tTarLocationState = LocationState,\n\t\tTarCountryId = CountryId,\n\t\tTarLocationZip = LocationZip,\n\t\tTarLocationId = LocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarSelectDeduplicated1TargetLocation\nSelectDeduplicated1PreSKSelectLocation, SelectTarSelectDeduplicated1TargetLocation join(LocationCity === TarLocationCity\n\t&& LocationState === TarLocationState\n\t&& CountryId === TarCountryId\n\t&& LocationZip === TarLocationZip,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarSelectDeduplicated1TargetLocation\nJoinSelectTarSelectDeduplicated1TargetLocation filter(isNull(TarLocationId)) ~> FilterInsertLocation\nFilterInsertLocation select(mapColumn(\n\t\tLocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> InsertLocation\nInsertLocation keyGenerate(output(Sk_LocationId as long),\n\tstartAt: 1L,\n\tstepValue: 1L) ~> SkLocation\nSelectTarSelectDeduplicated1TargetLocation aggregate(Max_TarLocationId = max(toInteger(TarLocationId)) + 0) ~> AggregatedSelectTarSelectDeduplicated1TargetLocation\nAggregatedSelectTarSelectDeduplicated1TargetLocation derive(Max_TarLocationId = iif(isNull(Max_TarLocationId),0,Max_TarLocationId)) ~> MaxSelectTarSelectDeduplicated1TargetLocation\nSkLocation, MaxSelectTarSelectDeduplicated1TargetLocation join(true() === true(),\n\tjoinType:'cross',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinMaxSelectTarSelectDeduplicated1TargetLocation\nJoinMaxSelectTarSelectDeduplicated1TargetLocation derive(LocationId = Sk_LocationId + Max_TarLocationId) ~> DerivedLocation\nDerivedLocation select(mapColumn(\n\t\tLocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip,\n\t\tLocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PostSkLocation\nJoinSelectTarSelectDeduplicated1TargetLocation filter(!isNull(TarLocationId)) ~> FilterUpdateSelectDeduplicated1PreSKSelectLocation\nFilterUpdateSelectDeduplicated1PreSKSelectLocation select(mapColumn(\n\t\tLocationCity,\n\t\tLocationState,\n\t\tCountryId,\n\t\tLocationZip,\n\t\tLocationId = TarLocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> UpdateSelectDeduplicated1PreSKSelectLocation\nPostSkLocation, UpdateSelectDeduplicated1PreSKSelectLocation union(byName: true)~> UnionUpdateSelectDeduplicated1PreSKSelectLocation\nUnionUpdateSelectDeduplicated1PreSKSelectLocation select(mapColumn(\n\t\tTarLocationCity = LocationCity,\n\t\tTarLocationState = LocationState,\n\t\tTarCountryId = CountryId,\n\t\tTarLocationZip = LocationZip,\n\t\tTarLocationId = LocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation\nPreSKSelectLocation, SelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation join(LocationCity === TarLocationCity\n\t&& LocationState === TarLocationState\n\t&& CountryId === TarCountryId\n\t&& LocationZip === TarLocationZip,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation\nJoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectLocation select(mapColumn(\n\t\tLocationZip,\n\t\tLocationState,\n\t\tLocationCity,\n\t\tCountryId,\n\t\tLocationId = TarLocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FinalLocation\nFinalLocation aggregate(groupBy(LocationId),\n\tLocationZip = last(LocationZip),\n\t\tLocationState = last(LocationState),\n\t\tLocationCity = last(LocationCity),\n\t\tCountryId = last(CountryId)) ~> Location\nLocation sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Location',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> LocationSink"
+		}
+	}
+}

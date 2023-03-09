@@ -1,0 +1,65 @@
+{
+	"name": "F3_Item_ProductCategoryDim_Product_TransactionLineItem",
+	"properties": {
+		"activities": [
+			{
+				"name": "L0_Item_ProductCategoryDim",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L0_Item_ProductCategoryDim",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "L1_Product",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "L0_Item_ProductCategoryDim",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L1_Product",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "L2_TransactionLineItem",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "L1_Product",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L2_TransactionLineItem",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "AdventureWorksPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-23T14:43:33Z"
+	}
+}

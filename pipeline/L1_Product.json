@@ -1,0 +1,38 @@
+{
+	"name": "L1_Product",
+	"properties": {
+		"activities": [
+			{
+				"name": "ProductTransform",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "1.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Product_DataFlow1",
+						"type": "DataFlowReference",
+						"parameters": {
+							"modifiedAfter": "toTimestamp(\"01-01-1900\")",
+							"modifiedBefore": "currentTimestamp()"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "AdventureWorksPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-23T14:40:10Z"
+	}
+}

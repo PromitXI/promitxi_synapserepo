@@ -1,0 +1,72 @@
+{
+	"name": "Transaction_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "SalesOrderDeltaSource"
+				},
+				{
+					"name": "SalesSource"
+				},
+				{
+					"name": "CustomerDataSource"
+				},
+				{
+					"name": "ResellerSource"
+				}
+			],
+			"sinks": [
+				{
+					"name": "TransactionSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1SalesOrderDeltaSource"
+				},
+				{
+					"name": "SalesOrder"
+				},
+				{
+					"name": "Deduplicated1SalesSource"
+				},
+				{
+					"name": "Sales"
+				},
+				{
+					"name": "JoinSales"
+				},
+				{
+					"name": "Deduplicated1CustomerDataSource"
+				},
+				{
+					"name": "CustomerData"
+				},
+				{
+					"name": "JoinCustomerData"
+				},
+				{
+					"name": "Deduplicated1ResellerSource"
+				},
+				{
+					"name": "Reseller"
+				},
+				{
+					"name": "JoinReseller"
+				},
+				{
+					"name": "SelectJoinReseller"
+				},
+				{
+					"name": "Transaction"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tSalesOrderLine as string,\n\t\tSalesOrder as string,\n\t\tSalesOrderLineKey as integer,\n\t\tChannel as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'SalesOrder',\n\tmanifestType: 'manifest') ~> SalesOrderDeltaSource\nsource(output(\n\t\tSalesAmount as decimal(18,2),\n\t\tTotalProductCost as decimal(18,2),\n\t\tProductStandardCost as decimal(18,2),\n\t\tUnitPriceDiscountPct as decimal(18,2),\n\t\tExtendedAmount as decimal(18,2),\n\t\tUnitPrice as decimal(18,2),\n\t\tOrderQuantity as integer,\n\t\tSalesTerritoryKey as integer,\n\t\tShipDateKey as integer,\n\t\tDueDateKey as integer,\n\t\tOrderDateKey as integer,\n\t\tProductKey as integer,\n\t\tCustomerKey as integer,\n\t\tResellerKey as integer,\n\t\tSalesOrderLineKey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'Sales',\n\tmanifestType: 'manifest') ~> SalesSource\nsource(output(\n\t\tCustomerKey as integer,\n\t\tCustomerId as string,\n\t\tCustomer as string,\n\t\tCity as string,\n\t\tStateProvince as string,\n\t\tCountryRegion as string,\n\t\tPostalCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'CustomerData',\n\tmanifestType: 'manifest') ~> CustomerDataSource\nsource(output(\n\t\tPostalCode as string,\n\t\tCountryRegion as string,\n\t\tStateProvince as string,\n\t\tCity as string,\n\t\tReseller as string,\n\t\tBusinessType as string,\n\t\tResellerId as string,\n\t\tResellerKey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'Reseller',\n\tmanifestType: 'manifest') ~> ResellerSource\nSalesOrderDeltaSource aggregate(groupBy(SalesOrderLineKey),\n\tSalesOrderLine = last(SalesOrderLine),\n\t\tSalesOrder = last(SalesOrder),\n\t\tChannel = last(Channel)) ~> Deduplicated1SalesOrderDeltaSource\nDeduplicated1SalesOrderDeltaSource select(mapColumn(\n\t\tSalesOrderLine,\n\t\tSalesOrder,\n\t\tSalesOrderLineKey,\n\t\tChannel\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SalesOrder\nSalesSource aggregate(groupBy(ProductKey,\n\t\tCustomerKey,\n\t\tResellerKey,\n\t\tSalesOrderLineKey),\n\tSalesAmount = last(SalesAmount),\n\t\tTotalProductCost = last(TotalProductCost),\n\t\tProductStandardCost = last(ProductStandardCost),\n\t\tUnitPriceDiscountPct = last(UnitPriceDiscountPct),\n\t\tExtendedAmount = last(ExtendedAmount),\n\t\tUnitPrice = last(UnitPrice),\n\t\tOrderQuantity = last(OrderQuantity),\n\t\tSalesTerritoryKey = last(SalesTerritoryKey),\n\t\tShipDateKey = last(ShipDateKey),\n\t\tDueDateKey = last(DueDateKey),\n\t\tOrderDateKey = last(OrderDateKey)) ~> Deduplicated1SalesSource\nDeduplicated1SalesSource select(mapColumn(\n\t\tSalesAmount,\n\t\tTotalProductCost,\n\t\tProductStandardCost,\n\t\tUnitPriceDiscountPct,\n\t\tExtendedAmount,\n\t\tUnitPrice,\n\t\tOrderQuantity,\n\t\tSalesTerritoryKey,\n\t\tShipDateKey,\n\t\tDueDateKey,\n\t\tOrderDateKey,\n\t\tProductKey,\n\t\tCustomerKey,\n\t\tResellerKey,\n\t\tSalesOrderLineKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Sales\nSalesOrder, Sales join(SalesOrder@SalesOrderLineKey === Sales@SalesOrderLineKey,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSales\nCustomerDataSource aggregate(groupBy(CustomerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tCustomer = last(Customer),\n\t\tCustomerId = last(CustomerId)) ~> Deduplicated1CustomerDataSource\nDeduplicated1CustomerDataSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tCustomer,\n\t\tCustomerId,\n\t\tCustomerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> CustomerData\nJoinSales, CustomerData join(Sales@CustomerKey === CustomerData@CustomerKey,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinCustomerData\nResellerSource aggregate(groupBy(ResellerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tReseller = last(Reseller),\n\t\tBusinessType = last(BusinessType),\n\t\tResellerId = last(ResellerId)) ~> Deduplicated1ResellerSource\nDeduplicated1ResellerSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tReseller,\n\t\tBusinessType,\n\t\tResellerId,\n\t\tResellerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Reseller\nJoinCustomerData, Reseller join(Sales@ResellerKey === Reseller@ResellerKey,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinReseller\nJoinReseller select(mapColumn(\n\t\tSalesOrder,\n\t\tCustomerData_CustomerKey_Generated = CustomerData@CustomerKey,\n\t\tReseller_ResellerKey_Generated = Reseller@ResellerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectJoinReseller\nSelectJoinReseller select(mapColumn(\n\t\tTransactionId = SalesOrder,\n\t\tCustomerId = CustomerData_CustomerKey_Generated,\n\t\tChannelId = Reseller_ResellerKey_Generated\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Transaction\nTransaction sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Transaction',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> TransactionSink"
+		}
+	}
+}

@@ -1,0 +1,66 @@
+{
+	"name": "Customer_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "CustomerDataDeltaSource"
+				},
+				{
+					"name": "TargetCountry"
+				},
+				{
+					"name": "TargetLocation"
+				}
+			],
+			"sinks": [
+				{
+					"name": "CustomerSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1CustomerDataDeltaSource"
+				},
+				{
+					"name": "CustomerData"
+				},
+				{
+					"name": "SelectCustomerData"
+				},
+				{
+					"name": "Deduplicated1TargetCountry"
+				},
+				{
+					"name": "SelectCountry"
+				},
+				{
+					"name": "JoinForCountryIdLookupFunction"
+				},
+				{
+					"name": "SelectForCountryIdLookupFunction"
+				},
+				{
+					"name": "Deduplicated1TargetLocation"
+				},
+				{
+					"name": "SelectLocation"
+				},
+				{
+					"name": "JoinForLocationId"
+				},
+				{
+					"name": "SelectForLocationId"
+				},
+				{
+					"name": "Customer"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tCustomerKey as integer,\n\t\tCustomerId as string,\n\t\tCustomer as string,\n\t\tCity as string,\n\t\tStateProvince as string,\n\t\tCountryRegion as string,\n\t\tPostalCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'CustomerData',\n\tmanifestType: 'manifest') ~> CustomerDataDeltaSource\nsource(output(\n\t\tCountryId as integer,\n\t\tIsoCountryName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Country',\n\tmanifestType: 'manifest') ~> TargetCountry\nsource(output(\n\t\tLocationId as integer,\n\t\tLocationCity as string,\n\t\tLocationState as string,\n\t\tCountryId as integer,\n\t\tLocationZip as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Location',\n\tmanifestType: 'manifest') ~> TargetLocation\nCustomerDataDeltaSource aggregate(groupBy(CustomerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tCustomer = last(Customer),\n\t\tCustomerId = last(CustomerId)) ~> Deduplicated1CustomerDataDeltaSource\nDeduplicated1CustomerDataDeltaSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tCustomer,\n\t\tCustomerId,\n\t\tCustomerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> CustomerData\nCustomerData select(mapColumn(\n\t\tPostalCodeAlias = PostalCode,\n\t\tStateProvinceAlias = StateProvince,\n\t\tCityAlias = City,\n\t\tCountryRegionAlias = CountryRegion,\n\t\tCustomerId,\n\t\tCustomerData_CustomerKey_Generated = CustomerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectCustomerData\nTargetCountry aggregate(groupBy(CountryId),\n\tIsoCountryName = last(IsoCountryName)) ~> Deduplicated1TargetCountry\nDeduplicated1TargetCountry select(mapColumn(\n\t\tCountryIdLookupFunction = CountryId,\n\t\tIsoCountryNameAlias = IsoCountryName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectCountry\nSelectCustomerData, SelectCountry join(CountryRegionAlias === IsoCountryNameAlias,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinForCountryIdLookupFunction\nJoinForCountryIdLookupFunction select(mapColumn(\n\t\tPostalCodeAlias,\n\t\tStateProvinceAlias,\n\t\tCityAlias,\n\t\tCountryRegionAlias,\n\t\tCustomerId,\n\t\tCustomerData_CustomerKey_Generated,\n\t\tCountryIdLookupFunction\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectForCountryIdLookupFunction\nTargetLocation aggregate(groupBy(LocationId),\n\tLocationCity = last(LocationCity),\n\t\tCountryId = last(CountryId),\n\t\tLocationZip = last(LocationZip),\n\t\tLocationState = last(LocationState)) ~> Deduplicated1TargetLocation\nDeduplicated1TargetLocation select(mapColumn(\n\t\tLocationId,\n\t\tLocationZipAlias = LocationZip,\n\t\tLocationStateAlias = LocationState,\n\t\tLocationCityAlias = LocationCity,\n\t\tCountryIdAlias = CountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectLocation\nSelectForCountryIdLookupFunction, SelectLocation join(PostalCodeAlias === LocationZipAlias\n\t&& StateProvinceAlias === LocationStateAlias\n\t&& CityAlias === LocationCityAlias\n\t&& CountryIdLookupFunction === CountryIdAlias,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinForLocationId\nJoinForLocationId select(mapColumn(\n\t\tPostalCodeAlias,\n\t\tStateProvinceAlias,\n\t\tCityAlias,\n\t\tCountryRegionAlias,\n\t\tCustomerId,\n\t\tCustomerData_CustomerKey_Generated,\n\t\tLocationId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectForLocationId\nSelectForLocationId select(mapColumn(\n\t\tLocationId,\n\t\tCustomerKey = CustomerId,\n\t\tCustomerId = CustomerData_CustomerKey_Generated\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Customer\nCustomer sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Customer',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> CustomerSink"
+		}
+	}
+}

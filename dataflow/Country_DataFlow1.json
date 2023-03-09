@@ -1,0 +1,102 @@
+{
+	"name": "Country_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "CustomerDataDeltaSource"
+				},
+				{
+					"name": "TargetCountry"
+				}
+			],
+			"sinks": [
+				{
+					"name": "CountrySink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1CustomerDataDeltaSource"
+				},
+				{
+					"name": "CustomerData"
+				},
+				{
+					"name": "SelectCustomerData"
+				},
+				{
+					"name": "PreSKSelectCountry"
+				},
+				{
+					"name": "Deduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "SelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "Deduplicated1TargetCountry"
+				},
+				{
+					"name": "SelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "SelectTarSelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "JoinSelectTarSelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "FilterInsertCountry"
+				},
+				{
+					"name": "InsertCountry"
+				},
+				{
+					"name": "SkCountry"
+				},
+				{
+					"name": "AggregatedSelectTarSelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "MaxSelectTarSelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "JoinMaxSelectTarSelectDeduplicated1TargetCountry"
+				},
+				{
+					"name": "DerivedCountry"
+				},
+				{
+					"name": "PostSkCountry"
+				},
+				{
+					"name": "FilterUpdateSelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "UpdateSelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "UnionUpdateSelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "SelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry"
+				},
+				{
+					"name": "FinalCountry"
+				},
+				{
+					"name": "Country"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tCustomerKey as integer,\n\t\tCustomerId as string,\n\t\tCustomer as string,\n\t\tCity as string,\n\t\tStateProvince as string,\n\t\tCountryRegion as string,\n\t\tPostalCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'CustomerData',\n\tmanifestType: 'manifest') ~> CustomerDataDeltaSource\nsource(output(\n\t\tCountryId as integer,\n\t\tIsoCountryName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Country',\n\tmanifestType: 'manifest') ~> TargetCountry\nCustomerDataDeltaSource aggregate(groupBy(CustomerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tCustomer = last(Customer),\n\t\tCustomerId = last(CustomerId)) ~> Deduplicated1CustomerDataDeltaSource\nDeduplicated1CustomerDataDeltaSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tCustomer,\n\t\tCustomerId,\n\t\tCustomerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> CustomerData\nCustomerData select(mapColumn(\n\t\tCountryRegion\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectCustomerData\nSelectCustomerData select(mapColumn(\n\t\tIsoCountryName = CountryRegion\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PreSKSelectCountry\nPreSKSelectCountry aggregate(groupBy(IsoCountryName),\n\tCount = count(1)) ~> Deduplicated1PreSKSelectCountry\nDeduplicated1PreSKSelectCountry select(mapColumn(\n\t\tIsoCountryName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1PreSKSelectCountry\nTargetCountry aggregate(groupBy(CountryId),\n\tIsoCountryName = last(IsoCountryName)) ~> Deduplicated1TargetCountry\nDeduplicated1TargetCountry select(mapColumn(\n\t\tIsoCountryName,\n\t\tCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1TargetCountry\nSelectDeduplicated1TargetCountry select(mapColumn(\n\t\tTarIsoCountryName = IsoCountryName,\n\t\tTarCountryId = CountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarSelectDeduplicated1TargetCountry\nSelectDeduplicated1PreSKSelectCountry, SelectTarSelectDeduplicated1TargetCountry join(IsoCountryName === TarIsoCountryName,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarSelectDeduplicated1TargetCountry\nJoinSelectTarSelectDeduplicated1TargetCountry filter(isNull(TarCountryId)) ~> FilterInsertCountry\nFilterInsertCountry select(mapColumn(\n\t\tIsoCountryName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> InsertCountry\nInsertCountry keyGenerate(output(Sk_CountryId as long),\n\tstartAt: 1L,\n\tstepValue: 1L) ~> SkCountry\nSelectTarSelectDeduplicated1TargetCountry aggregate(Max_TarCountryId = max(toInteger(TarCountryId)) + 0) ~> AggregatedSelectTarSelectDeduplicated1TargetCountry\nAggregatedSelectTarSelectDeduplicated1TargetCountry derive(Max_TarCountryId = iif(isNull(Max_TarCountryId),0,Max_TarCountryId)) ~> MaxSelectTarSelectDeduplicated1TargetCountry\nSkCountry, MaxSelectTarSelectDeduplicated1TargetCountry join(true() === true(),\n\tjoinType:'cross',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinMaxSelectTarSelectDeduplicated1TargetCountry\nJoinMaxSelectTarSelectDeduplicated1TargetCountry derive(CountryId = Sk_CountryId + Max_TarCountryId) ~> DerivedCountry\nDerivedCountry select(mapColumn(\n\t\tIsoCountryName,\n\t\tCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PostSkCountry\nJoinSelectTarSelectDeduplicated1TargetCountry filter(!isNull(TarCountryId)) ~> FilterUpdateSelectDeduplicated1PreSKSelectCountry\nFilterUpdateSelectDeduplicated1PreSKSelectCountry select(mapColumn(\n\t\tIsoCountryName,\n\t\tCountryId = TarCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> UpdateSelectDeduplicated1PreSKSelectCountry\nPostSkCountry, UpdateSelectDeduplicated1PreSKSelectCountry union(byName: true)~> UnionUpdateSelectDeduplicated1PreSKSelectCountry\nUnionUpdateSelectDeduplicated1PreSKSelectCountry select(mapColumn(\n\t\tTarIsoCountryName = IsoCountryName,\n\t\tTarCountryId = CountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry\nPreSKSelectCountry, SelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry join(IsoCountryName === TarIsoCountryName,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry\nJoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectCountry select(mapColumn(\n\t\tIsoCountryName,\n\t\tCountryId = TarCountryId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FinalCountry\nFinalCountry aggregate(groupBy(CountryId),\n\tIsoCountryName = last(IsoCountryName)) ~> Country\nCountry sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'Country',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> CountrySink"
+		}
+	}
+}

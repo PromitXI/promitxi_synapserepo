@@ -1,0 +1,45 @@
+{
+	"name": "F1_Country_Country2",
+	"properties": {
+		"activities": [
+			{
+				"name": "L0_Country",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L0_Country",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "L1_Country1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "L0_Country",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L1_Country2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "AdventureWorksPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-23T14:43:25Z"
+	}
+}

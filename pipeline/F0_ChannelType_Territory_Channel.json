@@ -1,0 +1,45 @@
+{
+	"name": "F0_ChannelType_Territory_Channel",
+	"properties": {
+		"activities": [
+			{
+				"name": "L0_ChannelType_Territory",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L0_ChannelType_Territory",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "L1_Channel",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "L0_ChannelType_Territory",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "L1_Channel",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "AdventureWorksPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-09-23T14:43:17Z"
+	}
+}

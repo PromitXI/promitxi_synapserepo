@@ -1,0 +1,102 @@
+{
+	"name": "ChannelType_DataFlow1",
+	"properties": {
+		"folder": {
+			"name": "AdventureWorksDataFlows"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "ResellerDeltaSource"
+				},
+				{
+					"name": "TargetChannelType"
+				}
+			],
+			"sinks": [
+				{
+					"name": "ChannelTypeSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Deduplicated1ResellerDeltaSource"
+				},
+				{
+					"name": "Reseller"
+				},
+				{
+					"name": "SelectReseller"
+				},
+				{
+					"name": "PreSKSelectChannelType"
+				},
+				{
+					"name": "Deduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "SelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "Deduplicated1TargetChannelType"
+				},
+				{
+					"name": "SelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "SelectTarSelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "JoinSelectTarSelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "FilterInsertChannelType"
+				},
+				{
+					"name": "InsertChannelType"
+				},
+				{
+					"name": "SkChannelType"
+				},
+				{
+					"name": "AggregatedSelectTarSelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "MaxSelectTarSelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "JoinMaxSelectTarSelectDeduplicated1TargetChannelType"
+				},
+				{
+					"name": "DerivedChannelType"
+				},
+				{
+					"name": "PostSkChannelType"
+				},
+				{
+					"name": "FilterUpdateSelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "UpdateSelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "UnionUpdateSelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "SelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType"
+				},
+				{
+					"name": "FinalChannelType"
+				},
+				{
+					"name": "ChannelType"
+				}
+			],
+			"script": "parameters{\n\tmodifiedAfter as timestamp,\n\tmodifiedBefore as timestamp\n}\nsource(output(\n\t\tPostalCode as string,\n\t\tCountryRegion as string,\n\t\tStateProvince as string,\n\t\tCity as string,\n\t\tReseller as string,\n\t\tBusinessType as string,\n\t\tResellerId as string,\n\t\tResellerKey as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworks',\n\ttableName: 'Reseller',\n\tmanifestType: 'manifest') ~> ResellerDeltaSource\nsource(output(\n\t\tChannelTypeId as integer,\n\t\tChannelTypeName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'ChannelType',\n\tmanifestType: 'manifest') ~> TargetChannelType\nResellerDeltaSource aggregate(groupBy(ResellerKey),\n\tPostalCode = last(PostalCode),\n\t\tCountryRegion = last(CountryRegion),\n\t\tStateProvince = last(StateProvince),\n\t\tCity = last(City),\n\t\tReseller = last(Reseller),\n\t\tBusinessType = last(BusinessType),\n\t\tResellerId = last(ResellerId)) ~> Deduplicated1ResellerDeltaSource\nDeduplicated1ResellerDeltaSource select(mapColumn(\n\t\tPostalCode,\n\t\tCountryRegion,\n\t\tStateProvince,\n\t\tCity,\n\t\tReseller,\n\t\tBusinessType,\n\t\tResellerId,\n\t\tResellerKey\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> Reseller\nReseller select(mapColumn(\n\t\tBusinessType\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectReseller\nSelectReseller select(mapColumn(\n\t\tChannelTypeName = BusinessType\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PreSKSelectChannelType\nPreSKSelectChannelType aggregate(groupBy(ChannelTypeName),\n\tCount = count(1)) ~> Deduplicated1PreSKSelectChannelType\nDeduplicated1PreSKSelectChannelType select(mapColumn(\n\t\tChannelTypeName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1PreSKSelectChannelType\nTargetChannelType aggregate(groupBy(ChannelTypeId),\n\tChannelTypeName = last(ChannelTypeName)) ~> Deduplicated1TargetChannelType\nDeduplicated1TargetChannelType select(mapColumn(\n\t\tChannelTypeName,\n\t\tChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectDeduplicated1TargetChannelType\nSelectDeduplicated1TargetChannelType select(mapColumn(\n\t\tTarChannelTypeName = ChannelTypeName,\n\t\tTarChannelTypeId = ChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarSelectDeduplicated1TargetChannelType\nSelectDeduplicated1PreSKSelectChannelType, SelectTarSelectDeduplicated1TargetChannelType join(ChannelTypeName === TarChannelTypeName,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarSelectDeduplicated1TargetChannelType\nJoinSelectTarSelectDeduplicated1TargetChannelType filter(isNull(TarChannelTypeId)) ~> FilterInsertChannelType\nFilterInsertChannelType select(mapColumn(\n\t\tChannelTypeName\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> InsertChannelType\nInsertChannelType keyGenerate(output(Sk_ChannelTypeId as long),\n\tstartAt: 1L,\n\tstepValue: 1L) ~> SkChannelType\nSelectTarSelectDeduplicated1TargetChannelType aggregate(Max_TarChannelTypeId = max(toInteger(TarChannelTypeId)) + 0) ~> AggregatedSelectTarSelectDeduplicated1TargetChannelType\nAggregatedSelectTarSelectDeduplicated1TargetChannelType derive(Max_TarChannelTypeId = iif(isNull(Max_TarChannelTypeId),0,Max_TarChannelTypeId)) ~> MaxSelectTarSelectDeduplicated1TargetChannelType\nSkChannelType, MaxSelectTarSelectDeduplicated1TargetChannelType join(true() === true(),\n\tjoinType:'cross',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinMaxSelectTarSelectDeduplicated1TargetChannelType\nJoinMaxSelectTarSelectDeduplicated1TargetChannelType derive(ChannelTypeId = Sk_ChannelTypeId + Max_TarChannelTypeId) ~> DerivedChannelType\nDerivedChannelType select(mapColumn(\n\t\tChannelTypeName,\n\t\tChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> PostSkChannelType\nJoinSelectTarSelectDeduplicated1TargetChannelType filter(!isNull(TarChannelTypeId)) ~> FilterUpdateSelectDeduplicated1PreSKSelectChannelType\nFilterUpdateSelectDeduplicated1PreSKSelectChannelType select(mapColumn(\n\t\tChannelTypeName,\n\t\tChannelTypeId = TarChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> UpdateSelectDeduplicated1PreSKSelectChannelType\nPostSkChannelType, UpdateSelectDeduplicated1PreSKSelectChannelType union(byName: true)~> UnionUpdateSelectDeduplicated1PreSKSelectChannelType\nUnionUpdateSelectDeduplicated1PreSKSelectChannelType select(mapColumn(\n\t\tTarChannelTypeName = ChannelTypeName,\n\t\tTarChannelTypeId = ChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> SelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType\nPreSKSelectChannelType, SelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType join(ChannelTypeName === TarChannelTypeName,\n\tjoinType:'left',\n\tmatchType:'exact',\n\tignoreSpaces: false,\n\tbroadcast: 'auto')~> JoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType\nJoinSelectTarUnionUpdateSelectDeduplicated1PreSKSelectChannelType select(mapColumn(\n\t\tChannelTypeName,\n\t\tChannelTypeId = TarChannelTypeId\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FinalChannelType\nFinalChannelType aggregate(groupBy(ChannelTypeId),\n\tChannelTypeName = last(ChannelTypeName)) ~> ChannelType\nChannelType sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstore: 'synapse',\n\tdatabaseType: 'spark',\n\tformat: 'table',\n\tdatabase: 'adworkstarget',\n\ttableName: 'ChannelType',\n\tpartitionBy('hash', 1),\n\tmanifestType: 'manifest') ~> ChannelTypeSink"
+		}
+	}
+}
