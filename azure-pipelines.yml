@@ -9,20 +9,15 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-- task: Synapse workspace deployment@2
+- task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
   inputs:
-    operation: 'deploy'
-    TemplateFile: 'workspace_publish/syn-dev-eus01/TemplateForWorkspace.json'
-    ParametersFile: 'workspace_publish/syn-dev-eus01/TemplateParametersForWorkspace.json'
-    azureSubscription: 'Promit''s Cloud(2)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    TemplateFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateForWorkspace.json'
+    ParametersFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateParametersForWorkspace.json'
+    azureSubscription: 'Promit''s Cloud (58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
     ResourceGroupName: 'RG-Test-QA-Data-RG'
-    TargetWorkspaceName: 'syn-$(env)-data-eus'
-    DeleteArtifactsNotInTemplate: false
-    DeployManagedPrivateEndpoints: false
-    FailOnMissingOverrides: false
-    Environment: 'prod'
-    npmpackage: 'prod'
+    TargetWorkspaceName: 'syn-$(env)-data-eus '
+    OverrideArmParameters: '-workspaceName $(workspace)'
 
