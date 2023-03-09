@@ -1,0 +1,28 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+- task: Synapse workspace deployment@2
+  inputs:
+    operation: 'deploy'
+    TemplateFile: 'workspace_publish/syn-dev-eus01/TemplateForWorkspace.json'
+    ParametersFile: 'workspace_publish/syn-dev-eus01/TemplateParametersForWorkspace.json'
+    azureSubscription: 'Promit''s Cloud(2)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    ResourceGroupName: 'RG-Test-QA-Data-RG'
+    TargetWorkspaceName: 'syn-$(env)-data-eus'
+    DeleteArtifactsNotInTemplate: false
+    DeployManagedPrivateEndpoints: false
+    FailOnMissingOverrides: false
+    Environment: 'prod'
+    npmpackage: 'prod'
+
