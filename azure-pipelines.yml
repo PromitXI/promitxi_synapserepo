@@ -13,7 +13,7 @@ steps:
   displayName: Multiline Bash Script
   env:
     name: Microsoft
-- task: Synapse workspace deployment@1
+- task: Synapse workspace deployment@2
   displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
 
   inputs:
@@ -24,7 +24,7 @@ steps:
     TargetWorkspaceName: 'syn-$(env)-data-eus'
     DeleteArtifactsNotInTemplate: false
     DeployManagedPrivateEndpoints: false
-    OverrideArmParameters: '-workspaceName $(workspace)'
-    FailOnMissingOverrides: false
+    OverrideArmParameters: '-workspaceName $(env)'
+    FailOnMissingOverrides: true
     Environment: 'prod'
     npmpackage: 'prod'
