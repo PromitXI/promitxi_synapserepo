@@ -1,0 +1,35 @@
+# YAML file for deploying ARM templates to Target Synapse Quality
+
+trigger:
+- workspace_publish
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: DownloadSecureFile@1
+  name: 'downloadPublishFolder'
+  displayName: 'Download Publish Folder'
+  inputs:
+    secureFile: 'publish_folder.zip'
+
+- task: ExtractFiles@1
+  name: 'extractPublishFolder'
+  displayName: 'Extract Publish Folder'
+  inputs:
+    archiveFile: '$(downloadPublishFolder.secureFilePath)'
+    destinationFolder: '$(System.ArtifactsDirectory)/publish_folder'
+
+- task: SynapseWorkspaceDeployment@2
+  displayName: 'Deploy ARM Templates to Synapse Workspace'
+  inputs:
+    operation: 'validateAndDeploy'
+    artifactsFolderPath: '$(System.ArtifactsDirectory)/publish_folder/workspace_publish'
+    azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    resourceGroupName: 'RG-Test-QA-Data-RG'
+    workspaceName: 'syn-target-quality'
+    enableParallelism: true
+    overrideArmParameters: '-workspaceName syn-target-quality'
+    deploymentMode: 'incremental'
+    allowDataPlaneOperations: true
+    outputsVariable: 'outputVariables'
