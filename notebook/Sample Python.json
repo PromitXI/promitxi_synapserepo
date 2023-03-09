@@ -1,5 +1,5 @@
 {
-	"name": "Notebook 1",
+	"name": "Sample Python",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -13,7 +13,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "8bdc4ce8-ddde-4c39-8c54-6eb73c06da65"
+				"spark.autotune.trackingId": "751d9449-ed0a-40b2-968f-6a6006088d6f"
 			}
 		},
 		"metadata": {
@@ -32,7 +32,7 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"print(\"This is a Sample Notebook\")"
+					"print(\"This is a Sample Notebook this needs to be moved to QA\")"
 				],
 				"execution_count": null
 			}
