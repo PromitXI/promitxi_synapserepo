@@ -9,6 +9,6 @@ steps:
   inputs:
     synapseConnection: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
     resourceGroupName: 'RG-Test-QA-Data-RG'
-    workspaceName: 'syn-qa-data-eus'
+    TargetWorkspaceName: 'syn-qa-data-eus'
     artifactsPath: 'syn-dev-eus01'
     deploymentMode: 'Incremental'
