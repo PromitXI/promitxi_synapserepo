@@ -1,34 +1,14 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - workspace_publish
 
 pool:
-  vmImage: windows-2019
-
-variables:
-  env: 'qa'
+  vmImage: 'ubuntu-latest'
 
 steps:
-- task: DownloadGitHubRelease@0
-  displayName: 'Download GitHub Release'
+- task: SynapseWorkspaceDeployment@0
   inputs:
-    connection: 'github connection 2'
-    userRepository: 'PromitXI/promitxi_synapserepo'
-    itemPattern: '*.json'
-
-
-
-- task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
-  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
-  inputs:
-    TemplateFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateForWorkspace.json'
-    ParametersFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateParametersForWorkspace.json'
-    azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
-    ResourceGroupName: 'RG-Test-QA-Data-RG'
-    TargetWorkspaceName: 'syn-$(env)-data-eus '
-    OverrideArmParameters: '-workspaceName $(env)'
-    npmpackage: ppe
+    synapseConnection: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    resourceGroupName: 'RG-Test-QA-Data-RG'
+    workspaceName: 'syn-qa-data-eus'
+    artifactsPath: 'syn-dev-eus01'
+    deploymentMode: 'Incremental'
