@@ -19,8 +19,9 @@ steps:
     subscriptionId: '58a3cb06-91b3-4f09-82b8-882ec0a9c038'
     resourceGroupName: 'RG-Test-QA-Data-RG'
     location: 'East US'
-    csmFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateForWorkspace.json'
-    csmParametersFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateParametersForWorkspace.json'
+    templateLocation: 'URL of the file'
+    csmFileLink: 'https://github.com/PromitXI/promitxi_synapserepo/blob/workspace_publish/syn-dev-eus01/TemplateForWorkspace.json'
+    csmParametersFileLink: 'https://github.com/PromitXI/promitxi_synapserepo/blob/workspace_publish/syn-dev-eus01/TemplateParametersForWorkspace.json'
     overrideParameters: '-workspaceName  "syn-qa-eus01"'
 
 
@@ -34,4 +35,3 @@ steps:
     TargetWorkspaceName: 'syn-$(env)-data-eus '
     OverrideArmParameters: '-workspaceName $(env)'
     npmpackage: ppe
-
