@@ -1,15 +1,28 @@
-trigger:
+trigger: 
 - workspace_publish
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
+
+variables:
+  env: 'qa'
+  workspace: 'syn-$(env)-data-eus'
+
 
 steps:
-- task: Synapse Workspace Deployment@1
+
+- task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
+
   inputs:
-    synapseConnection: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
-    AzureResourceManagerConnection: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
-    resourceGroupName: 'RG-Test-QA-Data-RG'
-    TargetWorkspaceName: 'syn-qa-data-eus'
-    artifactsPath: 'syn-dev-eus01'
-    deploymentMode: 'Incremental'
+    operation: 'validateDeploy'
+    ArtifactsFolder: '$(System.DefaultWorkingDirectory)/promitxi_synapserepo/syn-dev-eus01/'
+    azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    ResourceGroupName: 'RG-Test-QA-Data-RG'
+    TargetWorkspaceName: 'syn-$(env)-data-eus'
+    DeleteArtifactsNotInTemplate: false
+    DeployManagedPrivateEndpoints: false
+    OverrideArmParameters: '-workspaceName $(workspace)'
+    FailOnMissingOverrides: false
+    Environment: 'ppe'
+    npmpackage: 'ppe'
