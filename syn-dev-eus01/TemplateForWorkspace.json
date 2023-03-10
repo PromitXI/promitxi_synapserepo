@@ -2228,7 +2228,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Sample Python')]",
+			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -2244,7 +2244,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "fe6e77fd-7177-4d09-b7a3-425bc07cd682"
+						"spark.autotune.trackingId": "28ec99ba-9b8c-49d9-8ebf-9bab295751cf"
 					}
 				},
 				"metadata": {
@@ -2262,7 +2262,51 @@
 				"cells": [
 					{
 						"cell_type": "code",
-						"metadata": {},
+						"source": [
+							"print(\"Sample Application2\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Sample Python')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "751d9449-ed0a-40b2-968f-6a6006088d6f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "python"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
 						"source": [
 							"print(\"This is a Sample Notebook this needs to be moved to QA\")"
 						],
