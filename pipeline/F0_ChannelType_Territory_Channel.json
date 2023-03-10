@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "L0_ChannelType_Territory",
+				"name": "Lawra",
 				"type": "ExecutePipeline",
 				"dependsOn": [],
 				"userProperties": [],
@@ -16,11 +16,11 @@
 				}
 			},
 			{
-				"name": "L1_Channel",
+				"name": "Lasoon",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "L0_ChannelType_Territory",
+						"activity": "Lawra",
 						"dependencyConditions": [
 							"Succeeded"
 						]

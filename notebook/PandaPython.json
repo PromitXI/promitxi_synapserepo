@@ -1,0 +1,48 @@
+{
+	"name": "PandaPython",
+	"properties": {
+		"folder": {
+			"name": "Telt Fold"
+		},
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "aba3428f-fd2b-4030-8e00-701f417c70a4"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"import pandas as pandas\r\n",
+					"df=pandas.read_csv(\"HelloWorld.csv\")\r\n",
+					"for a in df.iterrows:\r\n",
+					"    print(a)\r\n",
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
