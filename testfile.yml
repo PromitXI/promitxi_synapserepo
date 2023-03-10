@@ -1,0 +1,32 @@
+trigger:
+- workspace_publish
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  env: 'qa'
+  workspace: 'syn-$(env)-data-eus'
+
+steps:
+- task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+  displayName: 'Synpase deployment task for workspace: syn-$(env)-data-eus '
+  inputs:
+    TemplateFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateForWorkspace.json'
+    ParametersFile: '$(System.DefaultWorkingDirectory)/_PromitXI_promitxi_synapserepo/syn-dev-eus01/TemplateParametersForWorkspace.json'
+    azureSubscription: 'Promit''s Cloud(3)(58a3cb06-91b3-4f09-82b8-882ec0a9c038)'
+    ResourceGroupName: 'RG-Test-QA-Data-RG'
+    TargetWorkspaceName: '$(workspace)'
+    npmpackage: ppe
+
+- task: AzureResourceGroupDeployment@2
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: '<Azure Resource Manager service connection>'
+    subscriptionId: '58a3cb06-91b3-4f09-82b8-882ec0a9c038'
+    resourceGroupName: 'RG-Test-QA-Data-RG'
+    templateLocation: 'https://path/to/template.json'
+    csmFileLink: 'https://path/to/parameters.json'
+    overrideParameters: '-workspaceName $(env)'
+    deploymentMode: 'Incremental'
+    deploymentName: 'Deploy to Synapse workspace'
